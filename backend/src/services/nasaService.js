@@ -6,10 +6,19 @@ const axios = require("axios");
  */
 const nasaService = axios.create({
     baseURL: "https://api.nasa.gov",
-    timeout: 10000,
+    timeout: 30000,  // 30s — NASA API can be slow
     params: {
-        api_key: process.env.NASA_API_KEY,
+        api_key: process.env.NASA_API_KEY || "DEMO_KEY",
     },
+    headers: {
+        Accept: "application/json",
+    },
+});
+
+// Log outgoing requests in dev
+nasaService.interceptors.request.use((config) => {
+    console.log(`[NASA] ${config.method?.toUpperCase()} ${config.url}`);
+    return config;
 });
 
 module.exports = nasaService;

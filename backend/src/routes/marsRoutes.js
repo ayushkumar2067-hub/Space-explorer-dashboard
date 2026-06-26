@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const { getMarsPhotos } = require("../controllers/marsController");
+const { getMarsPhotos, getRoverInfo } = require("../controllers/marsController");
 
-router.get("/", getMarsPhotos);
+router.get("/rovers", getRoverInfo);   // GET /api/mars/rovers
+router.get("/", getMarsPhotos);        // GET /api/mars
 
 module.exports = router;
