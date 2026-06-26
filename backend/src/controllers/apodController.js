@@ -1,46 +1,69 @@
-const axios = require("axios");
+const nasa = require("../services/nasaService");
 
-const getAPOD = async (req, res) => {
-    try {
+const getAPOD = async(req,res)=>{
 
-        const response = await axios.get(
-            `https://api.nasa.gov/planetary/apod?api_key=${process.env.NASA_API_KEY}`
-        );
+try{
 
-        const {
-            title,
-            date,
-            explanation,
-            url,
-            hdurl,
-            media_type,
-            copyright
-        } = response.data;
+const response=await nasa.get("/planetary/apod");
 
-        res.status(200).json({
-            success: true,
-            data: {
-                title,
-                date,
-                explanation,
-                url,
-                hdurl,
-                media_type,
-                copyright
-            }
-        });
+const{
 
-    } catch (error) {
+title,
 
-        console.error("NASA API Error:", error.response?.data || error.message);
+date,
 
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch APOD"
-        });
-    }
-};
+explanation,
 
-module.exports = {
-    getAPOD
+url,
+
+hdurl,
+
+media_type
+
+}=response.data;
+
+res.status(200).json({
+
+success:true,
+
+data:{
+
+title,
+
+date,
+
+explanation,
+
+url,
+
+hdurl,
+
+media_type
+
+}
+
+});
+
+}
+
+catch(error){
+
+console.error(error.response?.data||error.message);
+
+res.status(500).json({
+
+success:false,
+
+message:"Failed to fetch APOD"
+
+});
+
+}
+
+}
+
+module.exports={
+
+getAPOD
+
 };
