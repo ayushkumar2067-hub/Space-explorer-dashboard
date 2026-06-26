@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import api from "./services/api";
+import api from "./services/api";          // backend — for MongoDB favourites only
+import nasaApi from "./services/nasaApi";  // NASA — called directly from browser
 import APODCard from "./components/APODCard";
 import MarsGallery from "./components/MarsGallery";
 import Favorites from "./components/Favorites";
@@ -16,28 +17,33 @@ function App() {
     fetchFavorites();
   }, []);
 
+  // ── APOD — calls NASA directly from the browser ──────────────────────────
   const fetchAPOD = async () => {
     setApodLoading(true);
     setApodError(null);
     try {
-      const response = await api.get("/apod");
-      // Backend returns { success: true, data: { title, url, ... } }
-      setApod(response.data.data);
+      const response = await nasaApi.get("/planetary/apod");
+      setApod(response.data);               // NASA returns the object directly
     } catch (error) {
-      setApodError(
-        error.response?.data?.message || "Failed to connect to backend. Is the server running?"
-      );
+      const msg =
+        error.response?.data?.error?.message ||
+        error.response?.data?.msg ||
+        (error.code === "ECONNABORTED" || error.message?.includes("timeout")
+          ? "NASA API timed out. Please try again."
+          : "Failed to fetch APOD. Check your internet connection.");
+      setApodError(msg);
     } finally {
       setApodLoading(false);
     }
   };
 
+  // ── Favourites — go through backend → MongoDB ────────────────────────────
   const fetchFavorites = async () => {
     try {
       const response = await api.get("/favorites");
       setFavorites(response.data.data || []);
     } catch {
-      // silently fail for favourites on load
+      // Backend offline → favourites just won't load, not a critical error
     }
   };
 
@@ -60,8 +66,8 @@ function App() {
   };
 
   const tabs = [
-    { id: "apod", label: "🌌 Astronomy Picture" },
-    { id: "mars", label: "🔴 Mars Rover" },
+    { id: "apod",      label: "🌌 Astronomy Picture" },
+    { id: "mars",      label: "🔴 Mars Rover" },
     { id: "favorites", label: `⭐ Favourites (${favorites.length})` },
   ];
 

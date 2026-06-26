@@ -1,4 +1,11 @@
 function APODCard({ apod, loading, error, onRetry, onFavorite }) {
+  // Sanitize error: if it somehow contains HTML tags or is too long
+  const cleanError = error && (
+    error.includes("<") || error.includes("DOCTYPE") || error.length > 300
+      ? "Could not reach the NASA API. Please check your internet connection."
+      : error
+  );
+
   if (loading) {
     return (
       <div className="state-box">
@@ -8,12 +15,20 @@ function APODCard({ apod, loading, error, onRetry, onFavorite }) {
     );
   }
 
-  if (error) {
+  if (cleanError) {
     return (
       <div className="state-box error">
         <span className="state-icon">⚠️</span>
-        <p className="state-msg">{error}</p>
-        <button className="btn-retry" onClick={onRetry}>Try Again</button>
+        <p className="state-msg">{cleanError}</p>
+        <div className="error-tips">
+          <p className="state-hint">Things to check:</p>
+          <ul className="error-list">
+            <li>Your internet connection is active</li>
+            <li>NASA API may be temporarily rate-limited — try again in 1 minute</li>
+            <li>Your <code>VITE_NASA_API_KEY</code> in <code>frontend/.env</code> is valid</li>
+          </ul>
+        </div>
+        <button className="btn-retry" onClick={onRetry}>🔄 Try Again</button>
       </div>
     );
   }
