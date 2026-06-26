@@ -1,57 +1,63 @@
-const axios = require("axios");
+const nasa = require("../services/nasaService");
 
-const getMarsPhotos = async (req, res) => {
+const VALID_ROVERS = ["curiosity", "opportunity", "spirit", "perseverance"];
 
+/**
+ * GET /api/mars
+ * Query params:
+ *   rover      - curiosity | opportunity | spirit | perseverance (default: curiosity)
+ *   earth_date - YYYY-MM-DD  (used if sol not provided, default: 2020-07-01)
+ *   sol        - Martian sol number (takes priority over earth_date if provided)
+ *   camera     - FHAZ | RHAZ | MAST | CHEMCAM | MAHLI | MARDI | NAVCAM | PANCAM | MINITES (optional)
+ *   page       - page number for pagination (default: 1)
+ */
+const getMarsPhotos = async (req, res, next) => {
     try {
+        const {
+            rover = "curiosity",
+            earth_date = "2020-07-01",
+            sol,
+            camera,
+            page = 1,
+        } = req.query;
 
-        const rover = req.query.rover || "curiosity";
+        // Validate rover name
+        if (!VALID_ROVERS.includes(rover.toLowerCase())) {
+            return res.status(400).json({
+                success: false,
+                message: `Invalid rover. Must be one of: ${VALID_ROVERS.join(", ")}`,
+            });
+        }
 
-        const earth_date = req.query.earth_date || "2020-07-01";
+        const params = { page };
 
-        const url =
-`https://api.nasa.gov/mars-photos/api/v1/rovers/${rover}/photos`;
+        // sol takes priority over earth_date
+        if (sol) {
+            params.sol = parseInt(sol, 10);
+        } else {
+            params.earth_date = earth_date;
+        }
 
-        const response = await axios.get(url, {
+        if (camera) params.camera = camera.toUpperCase();
 
-            params: {
+        const response = await nasa.get(
+            `/mars-photos/api/v1/rovers/${rover.toLowerCase()}/photos`,
+            { params }
+        );
 
-                earth_date,
-
-                api_key: process.env.NASA_API_KEY
-
-            }
-
-        });
+        const photos = response.data.photos;
 
         res.status(200).json({
-
             success: true,
-
-            count: response.data.photos.length,
-
-            photos: response.data.photos
-
+            rover: rover.toLowerCase(),
+            count: photos.length,
+            page: parseInt(page, 10),
+            photos,
         });
-
+    } catch (error) {
+        console.error("Mars Error:", error.response?.data || error.message);
+        next(error);
     }
-
-    catch(error){
-
-        console.error("Status:", error.response?.status);
-    console.error("NASA Error:", error.response?.data);
-    console.error("Message:", error.message);
-
-    res.status(500).json({
-        success: false,
-        message: "Failed to fetch Mars Rover photos"
-    });
-
-    }
-
 };
 
-module.exports = {
-
-    getMarsPhotos
-
-};
+module.exports = { getMarsPhotos };

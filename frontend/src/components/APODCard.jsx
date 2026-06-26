@@ -1,28 +1,77 @@
-function APODCard({ apod }) {
+function APODCard({ apod, loading, error, onRetry, onFavorite }) {
+  if (loading) {
+    return (
+      <div className="state-box">
+        <div className="spinner" />
+        <p>Fetching today's astronomy picture…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="state-box error">
+        <span className="state-icon">⚠️</span>
+        <p className="state-msg">{error}</p>
+        <button className="btn-retry" onClick={onRetry}>Try Again</button>
+      </div>
+    );
+  }
+
+  if (!apod) return null;
+
+  const handleFavorite = () => {
+    onFavorite({
+      title: apod.title,
+      imageUrl: apod.url,
+      date: apod.date,
+      mediaType: apod.media_type || "image",
+      source: "APOD",
+    });
+  };
+
   return (
-    <div
-      style={{
-        maxWidth: "900px",
-        margin: "20px auto",
-        padding: "20px",
-        borderRadius: "12px",
-        backgroundColor: "#1a1a2e",
-      }}
-    >
-      <h2>{apod.title}</h2>
+    <div className="card apod-card">
+      <div className="card-badge">📅 {apod.date}</div>
+      <h2 className="card-title">{apod.title}</h2>
 
-      <img
-        src={apod.url}
-        alt={apod.title}
-        style={{
-          width: "100%",
-          borderRadius: "10px",
-        }}
-      />
+      {apod.media_type === "video" ? (
+        <div className="media-wrapper">
+          <iframe
+            src={apod.url}
+            title={apod.title}
+            allowFullScreen
+            className="apod-video"
+          />
+        </div>
+      ) : (
+        <div className="media-wrapper">
+          <img
+            src={apod.hdurl || apod.url}
+            alt={apod.title}
+            className="apod-img"
+            onError={(e) => { e.target.src = apod.url; }}
+          />
+        </div>
+      )}
 
-      <p style={{ marginTop: "15px" }}>
-        {apod.explanation}
-      </p>
+      <p className="card-explanation">{apod.explanation}</p>
+
+      <div className="card-actions">
+        <button className="btn-fav" onClick={handleFavorite}>
+          ⭐ Save to Favourites
+        </button>
+        {apod.hdurl && (
+          <a
+            href={apod.hdurl}
+            target="_blank"
+            rel="noreferrer"
+            className="btn-link"
+          >
+            🔍 View HD
+          </a>
+        )}
+      </div>
     </div>
   );
 }

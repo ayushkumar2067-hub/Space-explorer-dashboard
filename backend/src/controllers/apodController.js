@@ -1,69 +1,31 @@
 const nasa = require("../services/nasaService");
 
-const getAPOD = async(req,res)=>{
+/**
+ * GET /api/apod
+ * Query params:
+ *   date       - YYYY-MM-DD  (optional, defaults to today)
+ *   count      - number      (optional, returns N random APODs)
+ *   thumbs     - boolean     (optional, include thumbnail for video APODs)
+ */
+const getAPOD = async (req, res, next) => {
+    try {
+        const { date, count, thumbs } = req.query;
 
-try{
+        const params = {};
+        if (date) params.date = date;
+        if (count) params.count = parseInt(count, 10);
+        if (thumbs) params.thumbs = thumbs === "true";
 
-const response=await nasa.get("/planetary/apod");
+        const response = await nasa.get("/planetary/apod", { params });
 
-const{
-
-title,
-
-date,
-
-explanation,
-
-url,
-
-hdurl,
-
-media_type
-
-}=response.data;
-
-res.status(200).json({
-
-success:true,
-
-data:{
-
-title,
-
-date,
-
-explanation,
-
-url,
-
-hdurl,
-
-media_type
-
-}
-
-});
-
-}
-
-catch(error){
-
-console.error(error.response?.data||error.message);
-
-res.status(500).json({
-
-success:false,
-
-message:"Failed to fetch APOD"
-
-});
-
-}
-
-}
-
-module.exports={
-
-getAPOD
-
+        res.status(200).json({
+            success: true,
+            data: response.data,
+        });
+    } catch (error) {
+        console.error("APOD Error:", error.response?.data || error.message);
+        next(error);
+    }
 };
+
+module.exports = { getAPOD };
