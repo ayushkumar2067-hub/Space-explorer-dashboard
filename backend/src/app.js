@@ -1,8 +1,10 @@
 const express = require("express");
+const favoriteRoutes = require("./routes/favoriteRoutes");
 
 const app = express();
 
 app.use(express.json());
+app.use("/api/favorites", favoriteRoutes);
 
 // Import routes
 const apodRoutes = require("./routes/apodRoutes");
