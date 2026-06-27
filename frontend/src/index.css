@@ -593,3 +593,35 @@ body::before {
   .mars-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
   .favorites-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ─── Toast notifications ─────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  z-index: 9999;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  animation: toast-in 0.3s ease;
+  white-space: nowrap;
+}
+.toast-success { background: linear-gradient(135deg, var(--success), #059669); }
+.toast-error   { background: linear-gradient(135deg, var(--danger),  #b91c1c); }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Saved state for star button */
+.btn-fav-sm.saved {
+  opacity: 0.5;
+  cursor: default;
+  border-color: rgba(16,185,129,0.3);
+  color: var(--success);
+}
+

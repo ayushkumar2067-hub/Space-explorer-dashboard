@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import api from "./services/api";          // backend — for MongoDB favourites only
-import nasaApi from "./services/nasaApi";  // NASA — called directly from browser
+import { useEffect, useState, useCallback } from "react";
+import api from "./services/api";
+import nasaApi from "./services/nasaApi";
 import APODCard from "./components/APODCard";
 import MarsGallery from "./components/MarsGallery";
 import Favorites from "./components/Favorites";
@@ -11,19 +11,29 @@ function App() {
   const [apodLoading, setApodLoading] = useState(true);
   const [apodError, setApodError] = useState(null);
   const [favorites, setFavorites] = useState([]);
+  const [toast, setToast] = useState(null); // { msg, type: 'success'|'error' }
 
   useEffect(() => {
     fetchAPOD();
     fetchFavorites();
   }, []);
 
-  // ── APOD — calls NASA directly from the browser ──────────────────────────
+  // Auto-dismiss toast after 3 seconds
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const showToast = (msg, type = "success") => setToast({ msg, type });
+
+  // ── APOD — direct browser → NASA ────────────────────────────────────────
   const fetchAPOD = async () => {
     setApodLoading(true);
     setApodError(null);
     try {
       const response = await nasaApi.get("/planetary/apod");
-      setApod(response.data);               // NASA returns the object directly
+      setApod(response.data);
     } catch (error) {
       const msg =
         error.response?.data?.error?.message ||
@@ -37,22 +47,24 @@ function App() {
     }
   };
 
-  // ── Favourites — go through backend → MongoDB ────────────────────────────
-  const fetchFavorites = async () => {
+  // ── Favourites — browser → backend → MongoDB ─────────────────────────────
+  const fetchFavorites = useCallback(async () => {
     try {
       const response = await api.get("/favorites");
       setFavorites(response.data.data || []);
     } catch {
-      // Backend offline → favourites just won't load, not a critical error
+      // Backend offline — favourites unavailable but not fatal
     }
-  };
+  }, []);
 
   const addFavorite = async (item) => {
     try {
       await api.post("/favorites", item);
-      fetchFavorites();
+      await fetchFavorites();
+      showToast("⭐ Saved to Favourites!");
     } catch (err) {
       console.error("Failed to save favourite:", err.message);
+      showToast("❌ Could not save — is the backend running?", "error");
     }
   };
 
@@ -60,8 +72,10 @@ function App() {
     try {
       await api.delete(`/favorites/${id}`);
       setFavorites((prev) => prev.filter((f) => f._id !== id));
+      showToast("🗑 Removed from Favourites.");
     } catch (err) {
       console.error("Failed to delete favourite:", err.message);
+      showToast("❌ Could not delete — is the backend running?", "error");
     }
   };
 
@@ -73,6 +87,13 @@ function App() {
 
   return (
     <div className="app">
+      {/* Toast notification */}
+      {toast && (
+        <div className={`toast toast-${toast.type}`}>
+          {toast.msg}
+        </div>
+      )}
+
       {/* Header */}
       <header className="header">
         <div className="header-inner">
@@ -117,7 +138,12 @@ function App() {
       </main>
 
       <footer className="footer">
-        <p>Data provided by <a href="https://api.nasa.gov" target="_blank" rel="noreferrer">NASA Open APIs</a></p>
+        <p>
+          Data provided by{" "}
+          <a href="https://api.nasa.gov" target="_blank" rel="noreferrer">
+            NASA Open APIs
+          </a>
+        </p>
       </footer>
     </div>
   );
