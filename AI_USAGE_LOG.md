@@ -68,6 +68,9 @@ Major Assistance
 ### Human Validation
 
 All generated code and recommendations were reviewed, modified where required, tested locally, and integrated manually.
+### LINK
+
+https://chatgpt.com/share/6a400692-66ac-83ee-8802-30f2aa2975de
 
 ---
 
@@ -88,6 +91,10 @@ Minor Assistance
 ### Human Validation
 
 Generated prompts were reviewed before use.
+
+### LINK
+
+https://claude.ai/share/08230929-4bc5-470e-ae99-f91fe205eebd
 
 ---
 
