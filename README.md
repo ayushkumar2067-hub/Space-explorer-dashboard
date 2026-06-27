@@ -239,6 +239,8 @@ GET /api/favorites
 
 **Ayush Kumar**
 
+2562015
+
 B.Tech CSE (AI & ML)
 
 CHRIST (Deemed to be University), Bangalore
